@@ -1,3 +1,3 @@
-import { ZkTxProxy } from './zkTxProxy.js';
+import { BasicTxProxy } from './BasicTxProxy.js';
 
-export { ZkTxProxy };
+export { BasicTxProxy };
