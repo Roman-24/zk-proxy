@@ -26,6 +26,7 @@ describe('Add', () => {
   beforeEach(async () => {
     const Local = await Mina.LocalBlockchain({ proofsEnabled });
     Mina.setActiveInstance(Local);
+    
     [deployerAccount, senderAccount] = Local.testAccounts;
     deployerKey = deployerAccount.key;
     senderKey = senderAccount.key;

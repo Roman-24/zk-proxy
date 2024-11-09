@@ -36,30 +36,31 @@ import {
       this.totalProxed.set(UInt64.from(0));
     }
 
-    @method async proxyReceive(amount: UInt64) {
+    @method async proxyReceive(amount: UInt64, receiverAddress: PublicKey) {
       let senderUpdate = AccountUpdate.create(this.sender.getAndRequireSignatureV2());
       senderUpdate.requireSignature();
       senderUpdate.send({ to: this, amount });
       this.account.balance.getAndRequireEquals();
   
-      this.totalProxed.set(this.totalProxed.getAndRequireEquals().add(amount));
       this.emitEvent("proxy-receive", new ProxyReceiveInfo({
         senderAddress: this.sender.getAndRequireSignatureV2(), 
         amount
       }));
 
-      this.proxySend();
+      this.proxySend(amount, receiverAddress);
     }
 
-    @method async proxySend() {
+    @method async proxySend(amountToProxy: UInt64, receiverAddress: PublicKey) {
       // this.sender.getAndRequireSignature().assertEquals(PublicKey.fromBase58(OWNER));
-      const amount = this.account.balance.getAndRequireEquals();
   
-      this.send({to: this.sender.getAndRequireSignatureV2(), amount });
+      this.send({to: receiverAddress, amount: amountToProxy });
   
-      this.totalProxed.set(new UInt64(0));
+      this.totalProxed.set(this.totalProxed.getAndRequireEquals().add(amountToProxy));
   
-      this.emitEvent("proxy-send", amount);
+      this.emitEvent("proxy-send", new ProxySendInfo({
+        receiverAddress,
+        amount: amountToProxy
+      }));
     }
     
   }
