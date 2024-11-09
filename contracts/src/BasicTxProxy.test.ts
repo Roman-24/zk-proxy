@@ -1,5 +1,5 @@
 // TODO: Add tests
-import { BasicTxProxy } from './basicTxProxy.js';
+import { BasicTxProxy } from './BasicTxProxy.js';
 import { Field, Mina, PrivateKey, PublicKey, AccountUpdate, UInt64 } from 'o1js';
 
 let proofsEnabled = false;

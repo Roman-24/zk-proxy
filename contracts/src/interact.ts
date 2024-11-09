@@ -13,7 +13,7 @@
  * Run with node:     `$ node build/src/interact.js <deployAlias>`.
  */
 import fs from 'fs/promises';
-import { Mina, NetworkId, PrivateKey, UInt64 } from 'o1js';
+import { Mina, NetworkId, PrivateKey, PublicKey, UInt64 } from 'o1js';
 import { BasicTxProxy } from './BasicTxProxy.js';
 
 // check command line arg
@@ -69,6 +69,7 @@ let zkAppAddress = zkAppKey.toPublicKey();
 let zkApp = new BasicTxProxy(zkAppAddress);
 
 const amountToProx = new UInt64(1 * 10**9);
+const receiverAddress = PublicKey.fromBase58(config.feepayerAlias);
 
 // compile the contract to create prover keys
 console.log('compile the contract...');
@@ -80,7 +81,7 @@ try {
   let tx = await Mina.transaction(
     { sender: feepayerAddress, fee },
     async () => {
-      await zkApp.proxyReceive(amountToProx);
+      await zkApp.proxyReceive(amountToProx, receiverAddress);
     }
   );
   await tx.prove();
