@@ -37,6 +37,8 @@ import {
     }
 
     @method async proxyReceive(amount: UInt64, receiverAddress: PublicKey) {
+      console.log("proxyReceive");
+
       let senderUpdate = AccountUpdate.create(this.sender.getAndRequireSignatureV2());
       senderUpdate.requireSignature();
       senderUpdate.send({ to: this, amount });
@@ -47,10 +49,11 @@ import {
         amount
       }));
 
-      this.proxySend(amount, receiverAddress);
+      await this.proxySend(amount, receiverAddress);
     }
 
     @method async proxySend(amountToProxy: UInt64, receiverAddress: PublicKey) {
+      console.log("proxySend");
       // this.sender.getAndRequireSignature().assertEquals(PublicKey.fromBase58(OWNER));
   
       this.send({to: receiverAddress, amount: amountToProxy });

@@ -52,16 +52,22 @@ it('generates and deploys the BasicTxProxy smart contract', async () => {
     expect(num).toEqual(UInt64.from(0));
   });
 
-  /*
   it('correctly proxies a transaction', async () => {
     await localDeploy();
 
-    const amount = UInt64.from(1_000_000_000);
+    const amount = UInt64.from(1_000_000_000_000);
 
     const initialSenderBalance = await Mina.getBalance(senderAccount);
     const initialZkAppBalance = await Mina.getBalance(zkAppAddress);
     const initialTotalProxed = await zkApp.totalProxed.get();
     const initialReciverBalance = await Mina.getBalance(reciverAccount);
+
+    // Check initial balances
+    expect(initialSenderBalance.toString()).toEqual(amount.toString());
+    expect(initialZkAppBalance.toString()).toEqual('0');
+    // Reciver balance is not zero because it is funded in the localDeploy function
+    expect(initialReciverBalance.toString()).toEqual(amount.toString());
+    expect(initialTotalProxed.toString()).toEqual('0');
 
     // Send transaction to proxy
     const txn = await Mina.transaction(senderAccount, async () => {
@@ -73,12 +79,15 @@ it('generates and deploys the BasicTxProxy smart contract', async () => {
 
     const finalSenderBalance = await Mina.getBalance(senderAccount);
     const finalZkAppBalance = await Mina.getBalance(zkAppAddress);
+    const finalTotalProxed = await zkApp.totalProxed.get();
     const finalReciverBalance = await Mina.getBalance(reciverAccount);
-    // Check balances
-    expect(initialSenderBalance.sub(finalSenderBalance).toString()).toEqual("0");
-    expect(finalZkAppBalance.sub(initialZkAppBalance).toString()).toEqual("0");
-    expect(finalReciverBalance.sub(initialReciverBalance).toString()).toEqual(amount.toString());
+
+    // Check final balances
+    const amountFinal = UInt64.from(2_000_000_000_000);
+    expect(finalSenderBalance.toString()).toEqual('0');
+    expect(finalZkAppBalance.toString()).toEqual('0');
+    expect(finalReciverBalance.toString()).toEqual(amountFinal.toString());
+    expect(finalTotalProxed.toString()).toEqual(amount.toString());
   });
-  */
 
 });
