@@ -1,5 +1,5 @@
 /**
- * This script can be used to interact with the Add contract, after deploying it.
+ * This script can be used to interact with the BasicTxProxy contract, after deploying it.
  *
  * We call the update() method on the contract, create a proof and send it to the chain.
  * The endpoint that we interact with is read from your config.json.
@@ -13,8 +13,8 @@
  * Run with node:     `$ node build/src/interact.js <deployAlias>`.
  */
 import fs from 'fs/promises';
-import { Mina, NetworkId, PrivateKey } from 'o1js';
-import { Add } from './Add.js';
+import { Mina, NetworkId, PrivateKey, PublicKey, UInt64 } from 'o1js';
+import { BasicTxProxy } from './BasicTxProxy.js';
 
 // check command line arg
 let deployAlias = process.argv[2];
@@ -66,11 +66,14 @@ const fee = Number(config.fee) * 1e9; // in nanomina (1 billion = 1.0 mina)
 Mina.setActiveInstance(Network);
 let feepayerAddress = feepayerKey.toPublicKey();
 let zkAppAddress = zkAppKey.toPublicKey();
-let zkApp = new Add(zkAppAddress);
+let zkApp = new BasicTxProxy(zkAppAddress);
+
+const amountToProx = new UInt64(1 * 10**9);
+const receiverAddress = PublicKey.fromBase58(config.feepayerAlias);
 
 // compile the contract to create prover keys
 console.log('compile the contract...');
-await Add.compile();
+await BasicTxProxy.compile();
 
 try {
   // call update() and send transaction
@@ -78,7 +81,7 @@ try {
   let tx = await Mina.transaction(
     { sender: feepayerAddress, fee },
     async () => {
-      await zkApp.update();
+      await zkApp.proxyReceive(amountToProx, receiverAddress);
     }
   );
   await tx.prove();
@@ -87,7 +90,7 @@ try {
   const sentTx = await tx.sign([feepayerKey]).send();
   if (sentTx.status === 'pending') {
     console.log(
-      '\nSuccess! Update transaction sent.\n' +
+      '\nSuccess! proxyReceive transaction sent.\n' +
         '\nYour smart contract state will be updated' +
         '\nas soon as the transaction is included in a block:' +
         `\n${getTxnUrl(config.url, sentTx.hash)}`

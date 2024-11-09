@@ -1,3 +1,3 @@
-import { Add } from './Add.js';
+import { BasicTxProxy } from './BasicTxProxy.js';
 
-export { Add };
+export { BasicTxProxy };
