@@ -6,7 +6,6 @@ import {
     AccountUpdate,
     state,
     State,
-    Field,
     Struct,
   } from 'o1js';
 

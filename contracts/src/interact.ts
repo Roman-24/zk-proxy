@@ -14,7 +14,7 @@
  */
 import fs from 'fs/promises';
 import { Mina, NetworkId, PrivateKey, PublicKey, UInt64 } from 'o1js';
-import { BasicTxProxy } from './BasicTxProxy.js';
+import { BasicTxProxy } from './basicTxProxy.js';
 
 // check command line arg
 let deployAlias = process.argv[2];
