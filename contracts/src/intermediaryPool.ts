@@ -8,16 +8,11 @@ import {
     State,
   } from 'o1js';
   
-  const OWNER = '...'; // Replace with the actual owner's PublicKey in Base58 format
+  const OWNER = '...'; // Replace securely
   
   export class IntermediaryPool extends SmartContract {
-    // State variable to track the total pool amount
     @state(UInt64) totalPoolAmount = State<UInt64>();
   
-    /**
-     * Initialization function to set up the contract state.
-     * This runs only during the first deployment of the zkApp.
-     */
     init() {
       super.init();
       this.totalPoolAmount.set(UInt64.from(0)); // Initialize total pool amount to 0
@@ -30,17 +25,15 @@ import {
     @method async deposit(amountToDeposit: UInt64) {
       console.log('Deposit initiated');
   
-      // Create an account update for the sender and require their signature
+      amountToDeposit.assertGreaterThan(UInt64.from(0), 'Deposit amount must be positive.');
+  
       let senderUpdate = AccountUpdate.create(this.sender.getAndRequireSignatureV2());
       senderUpdate.requireSignature();
   
-      // Transfer the deposit amount to the contract
       senderUpdate.send({ to: this.address, amount: amountToDeposit });
   
-      // Optionally, you can enforce checks on the contract's balance
       this.account.balance.getAndRequireEquals();
   
-      // Update the total pool amount state
       let currentPoolAmount = this.totalPoolAmount.get();
       this.totalPoolAmount.set(currentPoolAmount.add(amountToDeposit));
     }
@@ -52,14 +45,15 @@ import {
     @method async withdraw(amountToWithdraw: UInt64, receiverAddress: PublicKey) {
       console.log('Withdraw initiated');
   
-      // Ensure the sender is the contract owner
+      amountToWithdraw.assertGreaterThan(UInt64.from(0), 'Withdrawal amount must be positive.');
+  
       this.sender.getAndRequireSignatureV2().assertEquals(PublicKey.fromBase58(OWNER));
   
-      // Transfer the specified amount to the receiver's address
+      let currentPoolAmount = this.totalPoolAmount.get();
+      amountToWithdraw.assertLessThanOrEqual(currentPoolAmount, 'Insufficient pool balance.');
+  
       this.send({ to: receiverAddress, amount: amountToWithdraw });
   
-      // Update the total pool amount state
-      let currentPoolAmount = this.totalPoolAmount.get();
       this.totalPoolAmount.set(currentPoolAmount.sub(amountToWithdraw));
     }
   }
