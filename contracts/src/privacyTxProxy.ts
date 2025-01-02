@@ -1,3 +1,5 @@
+// privacyTxProxy.ts
+
 import {
   SmartContract,
   state,
@@ -6,7 +8,6 @@ import {
   Field,
   PublicKey,
   Signature,
-  Circuit,
   Struct,
   ZkProgram,
   SelfProof,
@@ -16,44 +17,51 @@ import {
   UInt64,
 } from 'o1js';
 
-// Structure to store transaction details
 export class TransactionProof extends Struct({
-  sender: PublicKey,
-  recipient: PublicKey,
-  amount: UInt64, // Changed to UInt64 for compatibility with send method
-  nonce: Field,
+  sender: PublicKey, // The address sending the funds
+  recipient: PublicKey, // The address receiving the funds
+  amount: UInt64, // The amount being transferred
+  nonce: Field, // A unique number to prevent replay attacks
 }) {
+  // Method to convert the struct into an array of Field elements
   toFields(): Field[] {
     return [
-      ...this.sender.toFields(),
-      ...this.recipient.toFields(),
-      ...this.amount.toFields(), // Changed to handle UInt64
-      this.nonce,
+      ...this.sender.toFields(), // Convert sender PublicKey to Fields
+      ...this.recipient.toFields(), // Convert recipient PublicKey to Fields
+      ...this.amount.toFields(), // Convert UInt64 amount to Fields
+      this.nonce, // Add the nonce Field
     ];
   }
 }
 
-// ZkProgram for generating transaction proofs
 export const TransactionVerifier = ZkProgram({
+  // Program identifier
   name: 'TransactionVerifier',
+  
+  // What's publicly visible as input (in this case, a hash)
   publicInput: Field,
+  
+  // What's publicly visible as output (the transaction details)
   publicOutput: TransactionProof,
 
   methods: {
     verify: {
+      // What remains private during verification
       privateInputs: [TransactionProof, Signature],
 
       async method(
-        hash: Field,
-        transaction: TransactionProof,
-        signature: Signature
+        hash: Field, // Public input: hash of the transaction
+        transaction: TransactionProof, // Private: actual transaction details
+        signature: Signature // Private: signature proving ownership
       ): Promise<TransactionProof> {
-        // Verify the signature
+        // Verify the signature is valid for this transaction
         signature.verify(transaction.sender, transaction.toFields());
-        // Verify transaction hash using Poseidon (kept your change)
+
+        // Hash the transaction and verify it matches the provided hash
         const computedHash = Poseidon.hash(transaction.toFields());
         computedHash.assertEquals(hash);
 
+        // Return the verified transaction
         return transaction;
       },
     },
@@ -62,102 +70,75 @@ export const TransactionVerifier = ZkProgram({
 
 export class PrivacyTxProxy extends SmartContract {
   @state(Field) nextNonce = State<Field>();
-  @state(UInt64) poolBalance = State<UInt64>(); // Changed to UInt64
+  @state(UInt64) poolBalance = State<UInt64>();
 
-  // Initialize the contract
   init() {
     super.init();
     this.nextNonce.set(Field(1));
     this.poolBalance.set(UInt64.from(0));
   }
 
-  // Deploy with custom permissions
-  /*
   async deploy(args: DeployArgs) {
-    await super.deploy(args);
+    super.deploy(args);
     this.account.permissions.set({
       ...Permissions.default(),
       editState: Permissions.proofOrSignature(),
       send: Permissions.proofOrSignature(),
+      receive: Permissions.proofOrSignature(),
     });
-  }
-  */
-
-  @method async secretToPublic(
-    proof: SelfProof<Field, TransactionProof>,
-    recipientAddress: PublicKey,
-    amount: UInt64 // Changed to UInt64
-  ) {
-    // Verify the proof
-    proof.verify();
-
-    // Get current state
-    const currentNonce = this.nextNonce.get();
-    this.nextNonce.get().assertEquals(currentNonce);
-
-    // Update nonce
-    this.nextNonce.set(currentNonce.add(1));
-
-    // Verify pool has sufficient balance
-    const currentBalance = this.poolBalance.get();
-    this.poolBalance.get().assertEquals(currentBalance);
-    
-    // Check if balance is sufficient
-    const newBalance = currentBalance.sub(amount);
-    newBalance.assertGreaterThanOrEqual(UInt64.from(0));
-
-    // Update pool balance
-    this.poolBalance.set(newBalance);
-    
-    // Transfer to recipient
-    this.send({ to: recipientAddress, amount });
   }
 
   @method async publicToSecret(
     senderAddress: PublicKey,
     proofHash: Field,
-    amount: UInt64, // Changed to UInt64
+    amount: UInt64,
     signature: Signature
   ) {
-    // Verify sender's signature
+    const currentBalance = this.poolBalance.get();
+    this.poolBalance.requireEquals(currentBalance);
+
     signature.verify(senderAddress, [proofHash, ...amount.toFields()]);
 
-    // Get and update pool balance
-    const currentBalance = this.poolBalance.get();
     const newBalance = currentBalance.add(amount);
-    
-    // Verify no overflow occurs
     newBalance.assertLessThanOrEqual(UInt64.MAXINT());
-    
+
     this.poolBalance.set(newBalance);
+  }
+
+  @method async secretToPublic(
+    proof: SelfProof<Field, TransactionProof>,
+    recipientAddress: PublicKey,
+    amount: UInt64
+  ) {
+    const currentBalance = this.poolBalance.get();
+    this.poolBalance.requireEquals(currentBalance);
+
+    proof.verify();
+
+    const currentNonce = this.nextNonce.get();
+    this.nextNonce.requireEquals(currentNonce);
+    this.nextNonce.set(currentNonce.add(1));
+
+    const newBalance = currentBalance.sub(amount);
+    newBalance.assertGreaterThanOrEqual(UInt64.from(0));
+
+    this.poolBalance.set(newBalance);
+    this.send({ to: recipientAddress, amount });
   }
 
   @method async claimSecretTransfer(
     proof: SelfProof<Field, TransactionProof>
   ) {
-    // Verify the proof
-    proof.verify();
+    const currentBalance = this.poolBalance.get();
+    this.poolBalance.requireEquals(currentBalance);
 
-    // Get transaction details from proof
+    proof.verify();
     const transaction = proof.publicOutput;
 
-    // Verify pool has sufficient balance
-    const currentBalance = this.poolBalance.get();
-    this.poolBalance.get().assertEquals(currentBalance);
-    
-    // Check if balance is sufficient
     const newBalance = currentBalance.sub(transaction.amount);
     newBalance.assertGreaterThanOrEqual(UInt64.from(0));
 
-    // Update pool balance
     this.poolBalance.set(newBalance);
-
-    // Transfer to recipient
     this.send({ to: transaction.recipient, amount: transaction.amount });
-  }
-
-  // Helper method to check pool balance
-  getPoolBalance(): UInt64 {
-    return this.poolBalance.get();
   }
 }
