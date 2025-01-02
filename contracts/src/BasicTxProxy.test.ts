@@ -32,6 +32,7 @@ describe('BasicTxProxy', () => {
     zkAppAddress = zkAppPrivateKey.toPublicKey();
     zkApp = new BasicTxProxy(zkAppAddress);
   });
+  
   async function localDeploy() {
     const txn = await Mina.transaction(deployerAccount, async () => {
       AccountUpdate.fundNewAccount(deployerAccount);
