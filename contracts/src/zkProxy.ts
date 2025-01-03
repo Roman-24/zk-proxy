@@ -28,9 +28,9 @@ export class TransactionProof extends Struct({
     nonce: Field,
 }) {
     /**
-     * Converts the transaction structure into an array of Field elements
+     * Converts the transaction structure into an array of field elements
      * This conversion is necessary for:
-     * 1. Zero-knowledge proof generation
+     * 1. ZKP generation
      * 2. Hash computation
      * 3. Signature verification
      * 
@@ -38,25 +38,23 @@ export class TransactionProof extends Struct({
      */
     toFields(): Field[] {
         return [
-            ...this.sender.toFields(),    // Convert sender's public key to fields
-            ...this.recipient.toFields(), // Convert recipient's public key to fields
-            ...this.amount.toFields(),    // Convert amount to fields
-            this.nonce,                   // Add nonce as a field
+            ...this.sender.toFields(), // Convert sender public key to fields
+            ...this.recipient.toFields(), // Convert recipient public key to fields
+            ...this.amount.toFields(), // Convert amount to fields
+            this.nonce, // Add nonce as a field
         ];
     }
 }
 
 /**
- * @notice Zero-knowledge program for transaction verification
+ * @notice ZKP for transaction verification
  * @dev Implements proof generation and verification logic
  */
 export const TransactionVerifier = ZkProgram({
-    // Unique identifier for the verification program
     name: 'TransactionVerifier',
 
     // Public input: only the transaction hash is visible on-chain
     publicInput: Field,
-
     // Public output: the verified transaction proof
     publicOutput: TransactionProof,
 
@@ -84,14 +82,11 @@ export const TransactionVerifier = ZkProgram({
             ): Promise<TransactionProof> {
                 // Step 1: Verify the signature matches the sender and transaction data
                 signature.verify(transaction.sender, transaction.toFields());
-
                 // Step 2: Compute hash of the transaction data
                 const computedHash = Poseidon.hash(transaction.toFields());
-
                 // Step 3: Verify computed hash matches the provided hash
                 // This ensures transaction data hasn't been tampered with
                 computedHash.assertEquals(hash);
-
                 // Step 4: Return verified transaction
                 return transaction;
             },
