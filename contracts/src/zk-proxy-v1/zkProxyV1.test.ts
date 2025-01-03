@@ -1,6 +1,6 @@
-// privacyTxProxy.test.ts
-/*
-import { PrivacyTxProxy, TransactionVerifier, TransactionProof } from './privacyTxProxy';
+// zkProxyV1.test.ts
+
+import { ZkProxyV1, TransactionVerifier, TransactionProof } from './zkProxyV1';
 import {
     Mina,
     PrivateKey,
@@ -12,7 +12,7 @@ import {
     Poseidon,
 } from 'o1js';
 
-describe('PrivacyTxProxy', () => {
+describe('ZkProxyV1', () => {
     let proofsEnabled = false;
     let deployerAccount: Mina.TestPublicKey,
         deployerKey: PrivateKey,
@@ -20,12 +20,12 @@ describe('PrivacyTxProxy', () => {
         senderKey: PrivateKey,
         zkAppAddress: PublicKey,
         zkAppPrivateKey: PrivateKey,
-        zkApp: PrivacyTxProxy,
+        zkApp: ZkProxyV1,
         recipientAccount: Mina.TestPublicKey,
         recipientKey: PrivateKey;
 
     beforeAll(async () => {
-        await PrivacyTxProxy.compile();
+        await ZkProxyV1.compile();
     });
 
     beforeEach(async () => {
@@ -39,7 +39,7 @@ describe('PrivacyTxProxy', () => {
 
         zkAppPrivateKey = PrivateKey.random();
         zkAppAddress = zkAppPrivateKey.toPublicKey();
-        zkApp = new PrivacyTxProxy(zkAppAddress);
+        zkApp = new ZkProxyV1(zkAppAddress);
     });
     async function localDeploy() {
         const txn = await Mina.transaction(deployerAccount, async () => {
@@ -172,4 +172,3 @@ describe('PrivacyTxProxy', () => {
         }
     });
 });
-*/

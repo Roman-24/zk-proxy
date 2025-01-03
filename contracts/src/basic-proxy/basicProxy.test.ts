@@ -1,6 +1,6 @@
-// TODO: Add tests
-/*
-import { BasicTxProxy } from './basicTxProxy.js';
+// basicProxy.test.ts
+
+import { BasicProxy } from './basicProxy.js';
 import { Mina, PrivateKey, PublicKey, AccountUpdate, UInt64 } from 'o1js';
 
 let proofsEnabled = false;
@@ -12,12 +12,12 @@ describe('BasicTxProxy', () => {
     senderKey: PrivateKey,
     zkAppAddress: PublicKey,
     zkAppPrivateKey: PrivateKey,
-    zkApp: BasicTxProxy,
+    zkApp: BasicProxy,
     recipientAccount: Mina.TestPublicKey,
     recipientKey: PrivateKey;
 
   beforeAll(async () => {
-    if (proofsEnabled) await BasicTxProxy.compile();
+    if (proofsEnabled) await BasicProxy.compile();
   });
 
   beforeEach(async () => {
@@ -31,7 +31,7 @@ describe('BasicTxProxy', () => {
 
     zkAppPrivateKey = PrivateKey.random();
     zkAppAddress = zkAppPrivateKey.toPublicKey();
-    zkApp = new BasicTxProxy(zkAppAddress);
+    zkApp = new BasicProxy(zkAppAddress);
   });
   
   async function localDeploy() {
@@ -44,7 +44,7 @@ describe('BasicTxProxy', () => {
     await txn.sign([deployerKey, zkAppPrivateKey]).send();
   }
 
-it('generates and deploys the BasicTxProxy smart contract', async () => {
+it('generates and deploys the BasicProxy smart contract', async () => {
     await localDeploy();
 
     const balance = await Mina.getBalance(zkAppAddress);
@@ -93,4 +93,3 @@ it('generates and deploys the BasicTxProxy smart contract', async () => {
   });
 
 });
-*/

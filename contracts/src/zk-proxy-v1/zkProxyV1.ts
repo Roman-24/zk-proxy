@@ -1,4 +1,4 @@
-// privacyTxProxy.ts
+// zkProxyV1.ts
 
 import {
   SmartContract,
@@ -68,7 +68,7 @@ export const TransactionVerifier = ZkProgram({
   }
 });
 
-export class PrivacyTxProxy extends SmartContract {
+export class ZkProxyV1 extends SmartContract {
   @state(Field) nextNonce = State<Field>();
   @state(UInt64) poolBalance = State<UInt64>();
 

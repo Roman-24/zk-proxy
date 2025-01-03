@@ -1,5 +1,5 @@
 /**
- * This script can be used to interact with the BasicTxProxy contract, after deploying it.
+ * This script can be used to interact with the BasicProxy contract, after deploying it.
  *
  * We call the update() method on the contract, create a proof and send it to the chain.
  * The endpoint that we interact with is read from your config.json.
@@ -14,7 +14,7 @@
  */
 import fs from 'fs/promises';
 import { Mina, NetworkId, PrivateKey, PublicKey, UInt64 } from 'o1js';
-import { BasicTxProxy } from './basicTxProxy.js';
+import { BasicProxy } from './basic-proxy/basicProxy.js';
 
 // check command line arg
 let deployAlias = process.argv[2];
@@ -66,14 +66,14 @@ const fee = Number(config.fee) * 1e9; // in nanomina (1 billion = 1.0 mina)
 Mina.setActiveInstance(Network);
 let feepayerAddress = feepayerKey.toPublicKey();
 let zkAppAddress = zkAppKey.toPublicKey();
-let zkApp = new BasicTxProxy(zkAppAddress);
+let zkApp = new BasicProxy(zkAppAddress);
 
 const amountToProx = new UInt64(1 * 10**9);
 const receiverAddress = PublicKey.fromBase58(config.feepayerAlias);
 
 // compile the contract to create prover keys
 console.log('compile the contract...');
-await BasicTxProxy.compile();
+await BasicProxy.compile();
 
 try {
   // call update() and send transaction

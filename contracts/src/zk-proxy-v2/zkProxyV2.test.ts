@@ -1,3 +1,5 @@
+// zkProxy.test.ts
+
 import {
     Mina,
     PrivateKey,
@@ -8,10 +10,10 @@ import {
     UInt64,
     Poseidon,
   } from 'o1js';
-  import { TransactionVerifier, TransactionProof, ZkProxy } from './zkProxy';
+  import { TransactionVerifier, TransactionProof, ZkProxyV2 } from './zkProxyV2';
   
-  describe('ZkProxy', () => {
-    let zkApp: ZkProxy;
+  describe('ZkProxyV2', () => {
+    let zkApp: ZkProxyV2;
     let zkAppPrivateKey: PrivateKey;
     let zkAppAddress: PublicKey;
     let deployerAccount: PublicKey;
@@ -24,7 +26,7 @@ import {
     beforeAll(async () => {
       console.log('Compiling contracts...');
       console.time('Compilation time');
-      await ZkProxy.compile();
+      await ZkProxyV2.compile();
       await TransactionVerifier.compile();
       console.timeEnd('Compilation time');
     });
@@ -60,20 +62,20 @@ import {
       });
       await fundAccountsTx.sign([feePayerKey]).send();
   
-      // Deploy ZkProxy contract
+      // Deploy ZkProxyV2 contract
       zkAppPrivateKey = PrivateKey.random();
       zkAppAddress = zkAppPrivateKey.toPublicKey();
-      zkApp = new ZkProxy(zkAppAddress);
+      zkApp = new ZkProxyV2(zkAppAddress);
   
       try {
-        console.log('Deploying ZkProxy...');
+        console.log('Deploying ZkProxyV2...');
         const deployTx = await Mina.transaction(deployerAccount, async () => {
           AccountUpdate.fundNewAccount(deployerAccount);
           zkApp.deploy();
         });
         await deployTx.prove();
         await deployTx.sign([deployerKey, zkAppPrivateKey]).send();
-        console.log('ZkProxy deployed successfully');
+        console.log('ZkProxyV2 deployed successfully');
       } catch (error) {
         console.error('Deployment failed:', error);
         throw error;

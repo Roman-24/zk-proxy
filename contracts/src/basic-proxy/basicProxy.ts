@@ -21,7 +21,7 @@ import {
     amount: UInt64,
   }) {}
 
-  export class BasicTxProxy extends SmartContract {
+  export class BasicProxy extends SmartContract {
 
     events = {
       "proxy-receive": ProxyReceiveInfo,

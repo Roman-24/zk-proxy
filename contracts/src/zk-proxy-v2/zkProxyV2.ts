@@ -1,3 +1,5 @@
+// zkProxyV2.ts
+
 import {
     SmartContract,
     state,
@@ -95,10 +97,10 @@ export const TransactionVerifier = ZkProgram({
 });
 
 /**
- * @notice Main ZkProxy smart contract
+ * @notice Main ZkProxyV2 smart contract
  * @dev Manages deposits and withdrawals with privacy preservation
  */
-export class ZkProxy extends SmartContract {
+export class ZkProxyV2 extends SmartContract {
     @state(Field) nextNonce = State<Field>();    // Tracks transaction sequence
     @state(UInt64) poolBalance = State<UInt64>(); // Total pool balance
 

@@ -1,3 +1,3 @@
-import { BasicTxProxy } from './BasicTxProxy.js';
+import { BasicProxy } from './basic-proxy/basicProxy.js';
 
-export { BasicTxProxy };
+export { BasicProxy };
